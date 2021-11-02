@@ -1,6 +1,7 @@
 ﻿using Simulations.Items;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,6 +13,10 @@ namespace Simulations.Elements.Items {
     internal class Human : Item {
 
         internal bool satisfied = false;
+        internal override float GetScale() => 0.5f;
+        internal override Brush GetBrush() => satisfied ? Brushes.Green : Brushes.Black;
+        internal override int GetRowOffset() => Form1.rowSize/2 - Form1.margin;
+        internal override int GetColOffset() => Form1.colSize/2 - Form1.margin;
 
         internal Human(Tile tile) : base(tile) {}
 

@@ -14,14 +14,11 @@ namespace Simulations {
     public partial class Form1 : Form {
 
         // Graphics
-        private const int margin = 10;
-        private const int colSize = 50;
-        private const int rowSize = 50;
+        internal const int margin = 10;
+        internal const int colSize = 50;
+        internal const int rowSize = 50;
         private const int interval = 400;
 
-        private static readonly Brush runningHumanColor = Brushes.Black;
-        private static readonly Brush standingHumanColor = Brushes.Green;
-        private static readonly Brush fruitColor = Brushes.Red;
         private static readonly Brush indexColor = Brushes.Gray;
 
         // Data
@@ -31,8 +28,7 @@ namespace Simulations {
         private const int noFruits = 20;
 
         private static Board board;
-        private readonly List<Human> humans;
-        private readonly List<Fruit> fruits; 
+        private static List<Human> humans;
 
 
         public Form1() {
@@ -41,7 +37,7 @@ namespace Simulations {
             board = new Board(rows, cols);
             
             humans = board.GenerateItems<Human>(typeof(Human), noHumans);
-            fruits = board.GenerateItems<Fruit>(typeof(Fruit), noFruits);
+            board.GenerateItems<Fruit>(typeof(Fruit), noFruits);
             
             int height = 2*margin + rowSize*(rows+1) - 14;
             int width = 2*margin + colSize*(cols+1) - 36;
@@ -70,30 +66,41 @@ namespace Simulations {
                 }
             }
 
-            foreach (Fruit fruit in fruits) {
-                DrawRectangle(e, fruit.tile.row, fruit.tile.col, fruitColor);
+            foreach (Human human in humans) {
+                human.MakeAMove(board);
             }
 
-            foreach (Human human in humans) {
-                Brush brush = human.satisfied ? standingHumanColor : runningHumanColor;
-                DrawRectangle(e, human.tile.row, human.tile.col, brush);
+            for (int r = 0; r < rows; r++) {
+                for (int c = 0; c < cols; c++) {
+
+                    foreach (Item item in board[r,c].content) {
+                        DrawRectangle(e, item);
+                    }
+                }
             }
+            //foreach (Human human in humans) {
+            //    Brush brush = human.satisfied ? standingHumanColor : runningHumanColor;
+            //    DrawRectangle(e, human);
+            //}
+            //
+            //foreach (Fruit fruit in fruits) {
+            //    DrawRectangle(e, human);
+            //}
         }
 
-        private void DrawRectangle(PaintEventArgs e, int r, int c, Brush brush) {
+        private void DrawRectangle(PaintEventArgs e, Item item) {
             
-            int xStart = margin+margin + (c * colSize);
-            int yStart = margin+margin + (r * rowSize);
-            int boxWidth = colSize-margin-margin;
-            int boxHeight = rowSize-margin-margin;
-            e.Graphics.FillRectangle(brush, xStart, yStart, boxWidth, boxHeight);
+            if (item.GetScale() < 0 || 1 < item.GetScale()) throw new Exception("Scale must be between 0 and 1 inclusive");
+            int xStart = item.GetColOffset() + margin + margin + (item.tile.col * colSize);
+            int yStart = item.GetRowOffset() + margin + margin + (item.tile.row * rowSize);
+            float boxWidth = item.GetScale() * (colSize-margin-margin);
+            float boxHeight = item.GetScale() * (rowSize-margin-margin);
+            e.Graphics.FillRectangle(item.GetBrush(), xStart, yStart, boxWidth, boxHeight);
+            
         }
 
         private void Timer_tick(object sender, EventArgs e) {
             
-            foreach (Human h in humans) {
-                h.MakeAMove(board);
-            }
             Invalidate();
 
         }

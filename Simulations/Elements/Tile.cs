@@ -11,7 +11,7 @@ namespace Simulations {
     internal class Tile {
         internal int row;
         internal int col;
-        private List<Item> content = new List<Item>();
+        internal List<Item> content = new List<Item>();
 
         internal Tile(int row, int col) {
             this.row = row;
@@ -30,6 +30,14 @@ namespace Simulations {
         internal bool TryGetItem<T>(out Item item) where T:Item{ 
             item = content.Find(x => x.GetType() == typeof(T));
             return item != null;
+        }
+
+        internal List<Item> GetAll<T>() where T:Item {
+            List<Item> result = new List<Item>();
+            foreach (Item item in content) {
+                if (item.GetType() == typeof(T)) result.Add(item);
+            }
+            return result;
         }
 
         internal void Clear() {
