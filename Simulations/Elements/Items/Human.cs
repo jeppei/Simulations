@@ -12,11 +12,26 @@ namespace Simulations.Elements.Items {
 
     internal class Human : Item {
 
-        internal bool satisfied = false;
-        internal override float GetScale() => 0.5f;
-        internal override Brush GetBrush() => satisfied ? Brushes.Green : Brushes.Black;
         internal override int GetRowOffset() => Form1.rowSize/2 - Form1.margin;
         internal override int GetColOffset() => Form1.colSize/2 - Form1.margin;
+        internal override float GetScale() => 0.5f;
+        internal override Brush GetBrush() {
+            return (life > LifeLevel.satisfied) ? Brushes.DarkGreen: 
+                   (life > LifeLevel.hungry)    ? Brushes.Green:
+                   (life > LifeLevel.dead)      ? Brushes.LightGreen:
+                                                  Brushes.Gray;
+        }
+
+        internal int life = LifeLevel.satisfied;
+        
+        internal static class LifeLevel {
+            internal const int full      =  100;
+            internal const int satisfied =  90;
+            internal const int hungry    =  10;
+            internal const int starving  =   5;
+            internal const int dead      =   0;
+            internal const int removed   = -10;
+        }
 
         internal Human(Tile tile) : base(tile) {}
 
@@ -41,17 +56,25 @@ namespace Simulations.Elements.Items {
         }
 
         internal void MakeAMove(Board board) {
+
+            if (life == -10) return;
+
+            life--;
+
+            if (-10 <= life && life <= 0) return;
+
+            
             List<Move> moves = new List<Move> { Move.Left, Move.Right, Move.Up, Move.Down };
 
-            //moves[0].value = TunnelVision<Fruit, Human>(board, moves[0]);
-            //moves[1].value = TunnelVision<Fruit, Human>(board, moves[1]);
-            //moves[2].value = TunnelVision<Fruit, Human>(board, moves[2]);
-            //moves[3].value = TunnelVision<Fruit, Human>(board, moves[3]);
+            moves[0].value = TunnelVision<Fruit, Human>(board, moves[0]);
+            moves[1].value = TunnelVision<Fruit, Human>(board, moves[1]);
+            moves[2].value = TunnelVision<Fruit, Human>(board, moves[2]);
+            moves[3].value = TunnelVision<Fruit, Human>(board, moves[3]);
 
-            moves[0].value = RadiusVision<Fruit>(board, moves[0]);
-            moves[1].value = RadiusVision<Fruit>(board, moves[1]);
-            moves[2].value = RadiusVision<Fruit>(board, moves[2]);
-            moves[3].value = RadiusVision<Fruit>(board, moves[3]);
+            //moves[0].value = RadiusVision<Fruit>(board, moves[0]);
+            //moves[1].value = RadiusVision<Fruit>(board, moves[1]);
+            //moves[2].value = RadiusVision<Fruit>(board, moves[2]);
+            //moves[3].value = RadiusVision<Fruit>(board, moves[3]);
 
             moves = moves.OrderBy(x => x.value).ToList();
 
@@ -59,6 +82,7 @@ namespace Simulations.Elements.Items {
             if (TryMove(board, moves[2])) return;
             if (TryMove(board, moves[1])) return;
             if (TryMove(board, moves[0])) return;
+
         }
 
         private bool TryMove(Board board, Move move) {
@@ -66,7 +90,7 @@ namespace Simulations.Elements.Items {
             Tile nextTile = board.NextTile(tile, move);
 
             if (nextTile == null) return false;
-            if (satisfied) return false;
+            if (life > LifeLevel.satisfied) return false;
 
             if (nextTile.IsEmpty()) {
                 nextTile.AddContent(this);
@@ -81,7 +105,7 @@ namespace Simulations.Elements.Items {
                 nextTile.AddContent(this);
                 tile.RemoveContent(this);
                 tile = nextTile;
-                satisfied = true;
+                life = LifeLevel.full;
                 return true;
             }
 
